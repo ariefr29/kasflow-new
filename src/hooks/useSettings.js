@@ -20,17 +20,17 @@ export function useSettings() {
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    
+
     // Apply dark mode
     if (settings.darkMode) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-    
+
     // Apply display size
     document.documentElement.setAttribute('data-scale', settings.displaySize);
-  }, [settings]);
+  }, [settings.darkMode, settings.displaySize]); // Only re-run when these specific settings change
 
   const updateSetting = (key, value) => {
     setSettings(prev => ({ ...prev, [key]: value }));

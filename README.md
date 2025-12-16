@@ -1,5 +1,7 @@
 # Kasflow - Catat Keuanganmu
 
+**Version 1.0.0** - Production Ready ✨
+
 Aplikasi pencatatan keuangan pribadi berbasis web yang ringan, cepat, dan bekerja secara offline. Dibangun dengan React dan menyimpan data langsung di browser menggunakan IndexedDB.
 
 ![Kasflow Preview](https://img.shields.io/badge/Status-Production-green) ![PWA Ready](https://img.shields.io/badge/PWA-Ready-blue) ![Offline First](https://img.shields.io/badge/Offline-First-orange)
@@ -53,7 +55,7 @@ Aplikasi pencatatan keuangan pribadi berbasis web yang ringan, cepat, dan bekerj
 ```bash
 # Clone repository
 git clone <repository-url>
-cd kasflow---catatan-keuangan
+cd kasflow-new
 
 # Install dependencies
 npm install
@@ -152,6 +154,10 @@ Aplikasi ini mendukung browser modern yang support IndexedDB:
 ## Lisensi
 
 MIT License - Silakan gunakan dan modifikasi sesuai kebutuhan.
+
+## Changelog
+
+Lihat [CHANGELOG.md](./CHANGELOG.md) untuk informasi lengkap tentang perubahan dari setiap versi.
 
 ---
 
