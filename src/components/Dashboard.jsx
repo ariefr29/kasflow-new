@@ -1,22 +1,12 @@
 import React from 'react';
 import { useBalance } from '../hooks/useBalance';
-import { ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Calendar, CreditCard, Banknote, ChevronRight, PiggyBank } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Calendar, CreditCard, Banknote, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import clsx from 'clsx';
 
-const FUND_COLORS = {
-  emerald: 'bg-emerald-50 text-emerald-600',
-  sky: 'bg-sky-50 text-sky-600',
-  amber: 'bg-amber-50 text-amber-600',
-  violet: 'bg-violet-50 text-violet-600',
-  rose: 'bg-rose-50 text-rose-600',
-  teal: 'bg-teal-50 text-teal-600',
-  blue: 'bg-blue-50 text-blue-600'
-};
-
-export default function Dashboard({ onAddTransaction, onViewWallets }) {
-  const { totalBalance, walletBalances, fundBalances, incomeThisMonth, expenseThisMonth, recentTransactions } = useBalance();
+export default function Dashboard({ onAddTransaction, onViewWallets, activeFundId }) {
+  const { totalBalance, filteredBalance, walletBalances, activeFund, incomeThisMonth, expenseThisMonth, recentTransactions } = useBalance(activeFundId);
 
   return (
     <div className="p-5 space-y-5 pb-24">
@@ -27,12 +17,21 @@ export default function Dashboard({ onAddTransaction, onViewWallets }) {
         
         <div className="relative z-10">
           <div className="flex items-center gap-1.5 text-emerald-100 text-xs mb-1">
-            <Wallet size={14} />
-            <span>Total Saldo</span>
+            {activeFund ? (
+              <>
+                <span>{activeFund.icon}</span>
+                <span>Saldo {activeFund.name}</span>
+              </>
+            ) : (
+              <>
+                <Wallet size={14} />
+                <span>Total Saldo</span>
+              </>
+            )}
           </div>
           <div className="text-3xl font-bold tracking-tight mb-3">
             <span className="text-lg opacity-80 mr-0.5">Rp</span>
-            {totalBalance.toLocaleString('id-ID')}
+            {filteredBalance.toLocaleString('id-ID')}
           </div>
           <div className="flex items-center gap-1.5 text-[11px] bg-white/20 w-fit px-2.5 py-1 rounded-full">
              <Calendar size={11} />
@@ -63,42 +62,6 @@ export default function Dashboard({ onAddTransaction, onViewWallets }) {
           <div className="text-base font-semibold text-slate-800">Rp {expenseThisMonth.toLocaleString('id-ID')}</div>
         </div>
       </div>
-
-      {/* Fund Breakdown */}
-      {fundBalances?.length > 0 && (
-        <div>
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2">
-              <PiggyBank size={16} className="text-emerald-500" />
-              Saldo per Dana
-            </h3>
-          </div>
-          
-          <div className="bg-white p-4 rounded-2xl border border-slate-100">
-            <div className="space-y-3">
-              {fundBalances.map(fund => (
-                <div key={fund.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className={clsx(
-                      "w-8 h-8 rounded-lg flex items-center justify-center text-sm",
-                      FUND_COLORS[fund.color] || FUND_COLORS.emerald
-                    )}>
-                      {fund.icon}
-                    </div>
-                    <span className="text-sm font-medium text-slate-700">{fund.name}</span>
-                  </div>
-                  <span className={clsx(
-                    "font-semibold text-sm",
-                    fund.balance >= 0 ? "text-slate-800" : "text-rose-600"
-                  )}>
-                    Rp {fund.balance.toLocaleString('id-ID')}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Wallet Balances */}
       <div>

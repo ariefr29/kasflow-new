@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { X, Check, ArrowRightLeft, Calendar as CalendarIcon, FileText } from 'lucide-react';
 import clsx from 'clsx';
 
-export default function TransactionForm({ onClose, onSuccess }) {
+export default function TransactionForm({ onClose, onSuccess, activeFundId }) {
   const wallets = useLiveQuery(() => db.wallets.toArray());
   const categories = useLiveQuery(() => db.categories.toArray());
   const funds = useLiveQuery(() => db.funds.toArray());
@@ -31,10 +31,15 @@ export default function TransactionForm({ onClose, onSuccess }) {
 
   React.useEffect(() => {
     if (funds?.length && !fundId) {
-      const defaultFund = funds.find(f => f.name === 'Pribadi') || funds[0];
-      setFundId(defaultFund?.uuid || '');
+      // If activeFundId is set, use it; otherwise use default
+      if (activeFundId) {
+        setFundId(activeFundId);
+      } else {
+        const defaultFund = funds.find(f => f.name === 'Pribadi') || funds[0];
+        setFundId(defaultFund?.uuid || '');
+      }
     }
-  }, [funds]);
+  }, [funds, activeFundId]);
 
   const handleSubmit = async () => {
     if (!amount || !walletId) return;
@@ -190,27 +195,38 @@ export default function TransactionForm({ onClose, onSuccess }) {
             )}
           </div>
 
-          {/* Fund Selection */}
-          <div>
-            <label className="block text-[11px] font-medium text-slate-400 uppercase mb-2">Dana</label>
-            <div className="flex flex-wrap gap-2">
-              {funds?.map(f => (
-                <button
-                  key={f.uuid}
-                  onClick={() => setFundId(f.uuid)}
-                  className={clsx(
-                    "px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 flex items-center gap-1.5",
-                    fundId === f.uuid
-                      ? "bg-slate-800 text-white border-slate-800"
-                      : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
-                  )}
-                >
-                  <span>{f.icon}</span>
-                  <span>{f.name}</span>
-                </button>
-              ))}
+          {/* Fund Selection - Only show if no activeFundId (Semua Dana mode) */}
+          {!activeFundId ? (
+            <div>
+              <label className="block text-[11px] font-medium text-slate-400 uppercase mb-2">Dana</label>
+              <div className="flex flex-wrap gap-2">
+                {funds?.map(f => (
+                  <button
+                    key={f.uuid}
+                    onClick={() => setFundId(f.uuid)}
+                    className={clsx(
+                      "px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 flex items-center gap-1.5",
+                      fundId === f.uuid
+                        ? "bg-slate-800 text-white border-slate-800"
+                        : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                    )}
+                  >
+                    <span>{f.icon}</span>
+                    <span>{f.name}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div>
+              <label className="block text-[11px] font-medium text-slate-400 uppercase mb-2">Dana Aktif</label>
+              <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 rounded-lg border border-emerald-200">
+                <span className="text-base">{funds?.find(f => f.uuid === activeFundId)?.icon}</span>
+                <span className="text-sm font-medium text-emerald-700">{funds?.find(f => f.uuid === activeFundId)?.name}</span>
+                <span className="text-xs text-emerald-500 ml-auto">Otomatis</span>
+              </div>
+            </div>
+          )}
 
           {/* Categories (Not for Transfer) */}
           {type !== 'transfer' && (

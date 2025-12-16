@@ -4,7 +4,8 @@ const STORAGE_KEY = 'kasflow_settings';
 
 const defaultSettings = {
   darkMode: false,
-  displaySize: 'medium' // 'small' | 'medium' | 'large'
+  displaySize: 'medium', // 'small' | 'medium' | 'large'
+  activeFundId: null // null = "Semua Dana" (global view)
 };
 
 export function useSettings() {
@@ -43,11 +44,17 @@ export function useSettings() {
     setSettings(prev => ({ ...prev, displaySize: size }));
   };
 
+  const setActiveFundId = (fundId) => {
+    setSettings(prev => ({ ...prev, activeFundId: fundId }));
+  };
+
   return {
     settings,
     updateSetting,
     toggleDarkMode,
-    setDisplaySize
+    setDisplaySize,
+    activeFundId: settings.activeFundId,
+    setActiveFundId
   };
 }
 

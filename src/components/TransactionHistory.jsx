@@ -5,8 +5,8 @@ import { id } from 'date-fns/locale';
 import { ArrowUpRight, ArrowDownLeft, Trash2, Wallet, Search } from 'lucide-react';
 import { useBalance } from '../hooks/useBalance';
 
-export default function TransactionHistory() {
-  const { allTransactions } = useBalance();
+export default function TransactionHistory({ activeFundId }) {
+  const { allTransactions } = useBalance(activeFundId);
   const transactions = allTransactions?.slice(0, 100);
 
   const deleteTransaction = async (tx) => {

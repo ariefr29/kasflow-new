@@ -1,7 +1,7 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../db";
 
-export function useBalance() {
+export function useBalance(activeFundId = null) {
   const wallets = useLiveQuery(() => db.wallets.toArray());
   const transactions = useLiveQuery(() => db.transactions.toArray());
   const funds = useLiveQuery(() => db.funds.toArray());
@@ -56,12 +56,28 @@ export function useBalance() {
     };
   }) || [];
 
-  // Monthly stats
+  // Filter transactions by activeFundId if specified
+  const filteredTransactions = activeFundId 
+    ? transactions?.filter(t => {
+        const txFundId = t.fundId || defaultFund?.uuid;
+        return txFundId === activeFundId;
+      })
+    : transactions;
+
+  // Calculate filtered balance (for specific fund view)
+  const filteredBalance = activeFundId
+    ? (() => {
+        const activeFund = fundBalances?.find(f => f.uuid === activeFundId);
+        return activeFund?.balance || 0;
+      })()
+    : totalBalance;
+
+  // Monthly stats (filtered by activeFundId)
   const now = new Date();
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
 
-  const thisMonthTransactions = transactions?.filter(t => {
+  const thisMonthTransactions = filteredTransactions?.filter(t => {
     const d = new Date(t.date);
     return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
   }) || [];
@@ -74,10 +90,10 @@ export function useBalance() {
     .filter(t => t.type === 'expense' && t.category !== 'Transfer Out')
     .reduce((acc, t) => acc + t.amount, 0);
 
-  // Enrich transactions with wallet and fund info
-  const enrichedTransactions = transactions?.map(t => {
-    const fundId = t.fundId || defaultFund?.uuid;
-    const fund = fundMap[fundId];
+  // Enrich transactions with wallet and fund info (filtered)
+  const enrichedTransactions = filteredTransactions?.map(t => {
+    const txFundId = t.fundId || defaultFund?.uuid;
+    const fund = fundMap[txFundId];
     return {
       ...t,
       walletName: walletMap[t.walletId]?.name || 'Dompet Dihapus',
@@ -88,14 +104,19 @@ export function useBalance() {
     };
   }).sort((a, b) => new Date(b.date) - new Date(a.date)) || [];
 
+  // Get active fund info
+  const activeFund = activeFundId ? funds?.find(f => f.uuid === activeFundId) : null;
+
   return {
     totalBalance,
+    filteredBalance,
     walletBalances,
     walletMap,
     fundBalances,
     fundMap,
     funds,
     defaultFund,
+    activeFund,
     incomeThisMonth,
     expenseThisMonth,
     recentTransactions: enrichedTransactions.slice(0, 5),

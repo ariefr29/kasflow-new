@@ -1,19 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
 import WalletManager from './components/WalletManager';
 import TransactionHistory from './components/TransactionHistory';
 import BackupRestore from './components/BackupRestore';
 import TransactionForm from './components/TransactionForm';
 import { useSettings } from './hooks/useSettings';
-import { Home, Wallet, History, Settings, Plus } from 'lucide-react';
+import { useBalance } from './hooks/useBalance';
+import { Home, Wallet, History, Settings, Plus, ChevronDown, Globe } from 'lucide-react';
 import clsx from 'clsx';
 
 function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showFundDropdown, setShowFundDropdown] = useState(false);
+  const dropdownRef = useRef(null);
   
-  // Initialize settings (applies dark mode and display size on mount)
-  useSettings();
+  // Initialize settings and get active fund controls
+  const { activeFundId, setActiveFundId } = useSettings();
+  const { funds, fundBalances, totalBalance } = useBalance();
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowFundDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Get active fund info
+  const activeFund = activeFundId ? funds?.find(f => f.uuid === activeFundId) : null;
+  const activeFundBalance = activeFundId 
+    ? fundBalances?.find(f => f.uuid === activeFundId)?.balance || 0
+    : totalBalance;
 
   return (
     <div className="min-h-screen flex justify-center bg-slate-50 font-sans text-slate-900 selection:bg-emerald-100">
@@ -25,17 +46,74 @@ function App() {
             <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">Kasflow</h1>
             <p className="text-xs text-slate-400">Catat Keuanganmu</p>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-            <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wide">Offline</span>
+          
+          {/* Dana Switcher */}
+          <div className="relative" ref={dropdownRef}>
+            <button 
+              onClick={() => setShowFundDropdown(!showFundDropdown)}
+              className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200"
+            >
+              <span className="text-base">{activeFund?.icon || '🌐'}</span>
+              <span className="text-sm font-medium text-slate-700 max-w-[80px] truncate">
+                {activeFund?.name || 'Semua Dana'}
+              </span>
+              <ChevronDown size={14} className={clsx("text-slate-400 transition-transform", showFundDropdown && "rotate-180")} />
+            </button>
+            
+            {/* Dropdown Menu */}
+            {showFundDropdown && (
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-50 overflow-hidden">
+                {/* Semua Dana (Global) */}
+                <button
+                  onClick={() => { setActiveFundId(null); setShowFundDropdown(false); }}
+                  className={clsx(
+                    "w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors",
+                    !activeFundId && "bg-emerald-50"
+                  )}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Globe size={18} className="text-slate-500" />
+                    <span className="font-medium text-slate-700">Semua Dana</span>
+                  </div>
+                  <span className="text-xs font-semibold text-slate-500">
+                    Rp {totalBalance?.toLocaleString('id-ID') || 0}
+                  </span>
+                </button>
+                
+                <div className="border-t border-slate-100 my-1"></div>
+                
+                {/* Individual Funds */}
+                {fundBalances?.map(fund => (
+                  <button
+                    key={fund.uuid}
+                    onClick={() => { setActiveFundId(fund.uuid); setShowFundDropdown(false); }}
+                    className={clsx(
+                      "w-full px-4 py-2.5 flex items-center justify-between hover:bg-slate-50 transition-colors",
+                      activeFundId === fund.uuid && "bg-emerald-50"
+                    )}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-base">{fund.icon}</span>
+                      <span className="font-medium text-slate-700">{fund.name}</span>
+                    </div>
+                    <span className={clsx(
+                      "text-xs font-semibold",
+                      fund.balance >= 0 ? "text-slate-500" : "text-rose-500"
+                    )}>
+                      Rp {fund.balance?.toLocaleString('id-ID') || 0}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </header>
 
         {/* Content */}
         <main className="flex-1 overflow-y-auto bg-slate-50/50 scroll-smooth">
-          {activeTab === 'home' && <Dashboard onViewWallets={() => setActiveTab('wallets')} />}
+          {activeTab === 'home' && <Dashboard onViewWallets={() => setActiveTab('wallets')} activeFundId={activeFundId} />}
           {activeTab === 'wallets' && <WalletManager onClose={() => setActiveTab('home')} />}
-          {activeTab === 'history' && <TransactionHistory />}
+          {activeTab === 'history' && <TransactionHistory activeFundId={activeFundId} />}
           {activeTab === 'settings' && <BackupRestore />}
         </main>
 
@@ -86,6 +164,7 @@ function App() {
           <TransactionForm 
             onClose={() => setShowAddModal(false)} 
             onSuccess={() => {}}
+            activeFundId={activeFundId}
           />
         )}
 
