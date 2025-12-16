@@ -5,6 +5,13 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 Format ini berdasarkan pada [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 dan proyek ini mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2025-12-16
+
+### Ditambahkan
+- "**PWA Install Prompt**: Implementasi prompt instalasi aplikasi untuk pengalaman native-like"
+- "**Service Worker Registration**: Registrasi service worker untuk fungsionalitas offline yang lebih kuat"
+- "**Peningkatan Integrasi PWA**: Peningkatan pengalaman pengguna saat instalasi dan penggunaan offline"
+
 ## [1.0.1] - 2025-12-16
 
 ### Ditambahkan
@@ -43,5 +50,6 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - "**Berfokus pada Privasi**: Tidak ada data yang meninggalkan perangkat, semua disimpan secara lokal"
 - "**Penyimpanan Aman**: Enkripsi IndexedDB dan perlindungan data"
 
+[1.0.2]: https://github.com/username/kasflow/releases/tag/v1.0.2
 [1.0.1]: https://github.com/username/kasflow/releases/tag/v1.0.1
 [1.0.0]: https://github.com/username/kasflow/releases/tag/v1.0.0

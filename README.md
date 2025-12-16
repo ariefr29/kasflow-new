@@ -1,6 +1,6 @@
 # Kasflow - Catat Keuanganmu
 
-**Version 1.0.1** - Production Ready ✨
+**Version 1.0.2** - Production Ready ✨
 
 Aplikasi pencatatan keuangan pribadi berbasis web yang ringan, cepat, dan bekerja secara offline. Dibangun dengan React dan menyimpan data langsung di browser menggunakan IndexedDB.
 
