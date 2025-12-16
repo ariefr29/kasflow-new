@@ -38,7 +38,7 @@ Aplikasi pencatatan keuangan pribadi berbasis web yang ringan, cepat, dan bekerj
 ## Tech Stack
 
 - **Frontend:** React 19, Vite
-- **UI Framework:** Shadcn UI, Tailwind CSS 4
+- **UI Framework:** Tailwind CSS 4
 - **State Management:** React Context + Hooks
 - **Database:** Dexie.js (IndexedDB wrapper)
 - **Icons:** Lucide React
