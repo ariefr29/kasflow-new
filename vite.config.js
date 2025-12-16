@@ -9,34 +9,76 @@ export default defineConfig({
     VitePWA({
       strategies: 'generateSW',
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
+      injectRegister: 'auto',
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,svg,woff,woff2}', 'icon-*.png', 'maskable_icon.png'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'gstatic-fonts-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          }
+        ]
+      },
+      includeAssets: ['icon-192x192.png', 'icon-512x512.png', 'maskable_icon.png', 'robots.txt'],
       manifest: {
         name: 'Kasflow - Catat Keuanganmu',
         short_name: 'Kasflow',
         description: 'Aplikasi pencatatan keuangan pribadi berbasis web yang ringan, cepat, dan bekerja secara offline.',
-        theme_color: '#10b981', // emerald-500
+        theme_color: '#10b981',
         background_color: '#ffffff',
         display: 'standalone',
-        icon: 'public/icon-512x512.png',
+        orientation: 'portrait',
+        scope: '/',
+        start_url: '/',
         icons: [
           {
             src: 'icon-192x192.png',
             sizes: '192x192',
-            type: 'image/png',
+            type: 'image/png'
+          },
+          {
+            src: 'icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png'
           },
           {
             src: 'icon-512x512.png',
             sizes: '512x512',
             type: 'image/png',
+            purpose: 'any'
           },
           {
             src: 'maskable_icon.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'maskable',
-          },
-        ],
-      },
-    }),
-  ],
+            purpose: 'maskable'
+          }
+        ]
+      }
+    })
+  ]
 })

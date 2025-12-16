@@ -4,6 +4,7 @@ import WalletManager from './components/WalletManager';
 import TransactionHistory from './components/TransactionHistory';
 import BackupRestore from './components/BackupRestore';
 import TransactionForm from './components/TransactionForm';
+import InstallPrompt from './components/InstallPrompt';
 import { useSettings } from './hooks/useSettings';
 import { useBalance } from './hooks/useBalance';
 import { Home, Wallet, History, Settings, Plus, ChevronDown, Globe } from 'lucide-react';
@@ -167,6 +168,9 @@ function App() {
             activeFundId={activeFundId}
           />
         )}
+
+        {/* PWA Install Prompt */}
+        <InstallPrompt />
 
       </div>
     </div>
