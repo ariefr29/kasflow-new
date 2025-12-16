@@ -44,7 +44,7 @@ function App() {
         <header className="px-5 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-30 flex justify-between items-center border-b border-slate-100">
           <div>
             <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">Kasflow</h1>
-            <p className="text-xs text-slate-400">Catat Keuanganmu</p>
+            <p className="text-xs text-slate-400">Catat Keuangan Mudah</p>
           </div>
           
           {/* Dana Switcher */}

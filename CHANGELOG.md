@@ -5,6 +5,17 @@ Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 Format ini berdasarkan pada [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 dan proyek ini mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-12-16
+
+### Ditambahkan
+- "**Implementasi PWA Lengkap**: Integrasi service worker, manifest.json, dan dukungan instalasi offline"
+- "**Optimalisasi Performa Offline**: Pre-caching aset penting untuk pengalaman offline yang lancar"
+- "**Ikon dan Branding PWA**: Aspek visual aplikasi web progresif untuk pengalaman native-app"
+
+### Diperbaiki
+- "**Keandalan Offline**: Memperbaiki caching strategi untuk akses data offline yang lebih baik"
+- "**Pengalaman Pengguna PWA**: Memperbaiki installability dan integrasi dengan sistem operasi"
+
 ## [1.0.0] - 2025-12-16
 
 ### Ditambahkan
@@ -32,4 +43,5 @@ dan proyek ini mengikuti [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - "**Berfokus pada Privasi**: Tidak ada data yang meninggalkan perangkat, semua disimpan secara lokal"
 - "**Penyimpanan Aman**: Enkripsi IndexedDB dan perlindungan data"
 
-[1.0.0]: https://github.com/ariefr29/kasflow-new/releases/tag/v1.0.0
+[1.0.1]: https://github.com/username/kasflow/releases/tag/v1.0.1
+[1.0.0]: https://github.com/username/kasflow/releases/tag/v1.0.0
