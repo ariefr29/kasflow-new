@@ -5,14 +5,21 @@ import { v4 as uuidv4 } from 'uuid';
 import { format } from 'date-fns';
 import { X, Check, ArrowRightLeft, Calendar as CalendarIcon, FileText, Trash2 } from 'lucide-react';
 import clsx from 'clsx';
+import { formatNumber, parseNumber, sortCategoriesWithLainnyaLast } from '../utils/formatters';
+import ConfirmDialog from './ui/ConfirmDialog';
 
 export default function TransactionForm({ onClose, onSuccess, activeFundId, editData, onShowToast }) {
   const wallets = useLiveQuery(() => db.wallets.toArray());
   const categories = useLiveQuery(() => db.categories.toArray());
   const funds = useLiveQuery(() => db.funds.toArray());
 
-  const expenseCategories = categories?.filter(c => c.type === 'expense').map(c => c.name) || DEFAULT_EXPENSE_CATEGORIES;
-  const incomeCategories = categories?.filter(c => c.type === 'income').map(c => c.name) || DEFAULT_INCOME_CATEGORIES;
+  // Sort categories with Lainnya at the end
+  const expenseCategories = sortCategoriesWithLainnyaLast(
+    categories?.filter(c => c.type === 'expense').map(c => c.name) || DEFAULT_EXPENSE_CATEGORIES
+  );
+  const incomeCategories = sortCategoriesWithLainnyaLast(
+    categories?.filter(c => c.type === 'income').map(c => c.name) || DEFAULT_INCOME_CATEGORIES
+  );
 
   // Determine if this is a transfer based on editData
   const isEditingTransfer = editData?.transferId && (editData?.category === 'Transfer Out' || editData?.category === 'Transfer In');
@@ -26,11 +33,12 @@ export default function TransactionForm({ onClose, onSuccess, activeFundId, edit
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [note, setNote] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Populate form when editing
   useEffect(() => {
     if (editData) {
-      setAmount(editData.amount?.toString() || '');
+      setAmount(formatNumber(editData.amount) || '');
       setWalletId(editData.walletId || '');
       setFundId(editData.fundId || '');
       setDate(editData.date || format(new Date(), 'yyyy-MM-dd'));
@@ -88,7 +96,7 @@ export default function TransactionForm({ onClose, onSuccess, activeFundId, edit
 
   const handleSubmit = async () => {
     if (!amount || !walletId) return;
-    const numAmount = parseFloat(amount);
+    const numAmount = parseNumber(amount);
 
     try {
       if (editData) {
@@ -189,11 +197,10 @@ export default function TransactionForm({ onClose, onSuccess, activeFundId, edit
 
   const handleDelete = async () => {
     if (!editData) return;
-
+    setShowDeleteConfirm(false);
     setIsDeleting(true);
     try {
       if (editData.transferId) {
-        // Delete both sides of transfer
         const relatedTxs = await db.transactions.where('transferId').equals(editData.transferId).toArray();
         await db.transactions.bulkDelete(relatedTxs.map(t => t.id));
         onShowToast?.('Transfer dana berhasil dihapus', 'error');
@@ -209,6 +216,11 @@ export default function TransactionForm({ onClose, onSuccess, activeFundId, edit
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleAmountChange = (e) => {
+    const value = e.target.value.replace(/\D/g, '');
+    setAmount(formatNumber(value));
   };
 
   const isEditMode = !!editData;
@@ -254,12 +266,13 @@ export default function TransactionForm({ onClose, onSuccess, activeFundId, edit
             <div className="flex items-center gap-2">
               <span className="text-xl font-semibold text-slate-400">Rp</span>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 className="text-2xl font-bold w-full bg-transparent outline-none text-slate-800 placeholder-slate-300"
                 placeholder="0"
                 autoFocus={!isEditMode}
                 value={amount}
-                onChange={e => setAmount(e.target.value)}
+                onChange={handleAmountChange}
               />
             </div>
           </div>
@@ -405,7 +418,7 @@ export default function TransactionForm({ onClose, onSuccess, activeFundId, edit
 
           {isEditMode && (
             <button
-              onClick={handleDelete}
+              onClick={() => setShowDeleteConfirm(true)}
               disabled={isDeleting}
               className="w-full bg-white border border-rose-200 text-rose-600 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-rose-50 active:scale-[0.98] transition-all"
             >
@@ -414,6 +427,20 @@ export default function TransactionForm({ onClose, onSuccess, activeFundId, edit
           )}
         </div>
       </div>
+
+      {/* Confirm Delete Dialog */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Hapus Transaksi?"
+        message={editData?.transferId
+          ? "Transfer dana ini akan dihapus dari kedua dompet. Tindakan ini tidak dapat dibatalkan."
+          : `${editData?.type === 'income' ? 'Pemasukan' : 'Pengeluaran'} ini akan dihapus. Tindakan ini tidak dapat dibatalkan.`
+        }
+        type="danger"
+        confirmText="Ya, Hapus"
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }

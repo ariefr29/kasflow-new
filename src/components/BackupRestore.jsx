@@ -7,7 +7,9 @@ import { format } from 'date-fns';
 import clsx from 'clsx';
 import { useSettings } from '../hooks/useSettings';
 import TabSwitcher from './ui/TabSwitcher';
+import ConfirmDialog from './ui/ConfirmDialog';
 import { isErrorMessage } from '../utils/helpers';
+import { sortCategoriesWithLainnyaLast } from '../utils/formatters';
 
 export default function BackupRestore() {
   const [message, setMessage] = useState('');
@@ -17,13 +19,16 @@ export default function BackupRestore() {
   const [categoryType, setCategoryType] = useState('expense');
   const [newFundName, setNewFundName] = useState('');
   const [newFundIcon, setNewFundIcon] = useState('💰');
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: '', id: null, name: '' });
 
   const { settings, toggleDarkMode, setDisplaySize } = useSettings();
 
   const categories = useLiveQuery(() => db.categories.toArray());
   const funds = useLiveQuery(() => db.funds.toArray());
-  const expenseCategories = categories?.filter(c => c.type === 'expense') || [];
-  const incomeCategories = categories?.filter(c => c.type === 'income') || [];
+
+  // Sort categories with "Lainnya" at the end
+  const expenseCategories = sortCategoriesWithLainnyaLast(categories?.filter(c => c.type === 'expense') || []);
+  const incomeCategories = sortCategoriesWithLainnyaLast(categories?.filter(c => c.type === 'income') || []);
 
   const FUND_ICONS = ['💰', '🤝', '💼', '🎯', '🏦', '💳', '🛒', '🏠', '🚗', '✈️', '🎓', '💊'];
 
@@ -44,15 +49,32 @@ export default function BackupRestore() {
     setMessage('Kategori berhasil ditambah!');
   };
 
-  const deleteCategory = async (id, name) => {
+  const requestDeleteCategory = (id, name) => {
     if (name === 'Lainnya') {
       setMessage('Kategori "Lainnya" tidak bisa dihapus.');
       return;
     }
-    if (confirm(`Hapus kategori "${name}"?`)) {
+    setConfirmDialog({ isOpen: true, type: 'category', id, name });
+  };
+
+  const requestDeleteFund = (id, name) => {
+    if (name === 'Pribadi') {
+      setMessage('Dana "Pribadi" tidak bisa dihapus.');
+      return;
+    }
+    setConfirmDialog({ isOpen: true, type: 'fund', id, name });
+  };
+
+  const handleConfirmDelete = async () => {
+    const { type, id, name } = confirmDialog;
+    if (type === 'category') {
       await db.categories.delete(id);
       setMessage('Kategori dihapus.');
+    } else if (type === 'fund') {
+      await db.funds.delete(id);
+      setMessage('Dana dihapus.');
     }
+    setConfirmDialog({ isOpen: false, type: '', id: null, name: '' });
   };
 
   const addFund = async () => {
@@ -72,17 +94,6 @@ export default function BackupRestore() {
     setNewFundName('');
     setNewFundIcon('💰');
     setMessage('Dana berhasil ditambah!');
-  };
-
-  const deleteFund = async (id, name) => {
-    if (name === 'Pribadi') {
-      setMessage('Dana "Pribadi" tidak bisa dihapus.');
-      return;
-    }
-    if (confirm(`Hapus dana "${name}"? Transaksi dengan dana ini akan menjadi "Pribadi".`)) {
-      await db.funds.delete(id);
-      setMessage('Dana dihapus.');
-    }
   };
 
   const handleExport = async () => {
@@ -374,7 +385,7 @@ export default function BackupRestore() {
                   </div>
                   {fund.name !== 'Pribadi' && (
                     <button
-                      onClick={() => deleteFund(fund.id, fund.name)}
+                      onClick={() => requestDeleteFund(fund.id, fund.name)}
                       className="text-slate-300 hover:text-rose-500 transition-colors p-1"
                     >
                       <X size={16} />
@@ -454,7 +465,7 @@ export default function BackupRestore() {
                   <span className="text-xs text-slate-700">{cat.name}</span>
                   {cat.name !== 'Lainnya' && (
                     <button
-                      onClick={() => deleteCategory(cat.id, cat.name)}
+                      onClick={() => requestDeleteCategory(cat.id, cat.name)}
                       className="text-slate-300 hover:text-rose-500 transition-colors"
                     >
                       <X size={14} />
@@ -558,6 +569,20 @@ export default function BackupRestore() {
           <span className="text-xs font-medium leading-relaxed">{message}</span>
         </div>
       )}
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.type === 'category' ? 'Hapus Kategori?' : 'Hapus Dana?'}
+        message={confirmDialog.type === 'category'
+          ? `Kategori "${confirmDialog.name}" akan dihapus.`
+          : `Dana "${confirmDialog.name}" akan dihapus. Transaksi dengan dana ini akan menjadi "Pribadi".`
+        }
+        type="danger"
+        confirmText="Ya, Hapus"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmDialog({ isOpen: false, type: '', id: null, name: '' })}
+      />
     </div>
   );
 }
