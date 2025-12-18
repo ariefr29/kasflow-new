@@ -15,14 +15,14 @@ export default function BackupRestore() {
   const [categoryType, setCategoryType] = useState('expense');
   const [newFundName, setNewFundName] = useState('');
   const [newFundIcon, setNewFundIcon] = useState('💰');
-  
+
   const { settings, toggleDarkMode, setDisplaySize } = useSettings();
 
   const categories = useLiveQuery(() => db.categories.toArray());
   const funds = useLiveQuery(() => db.funds.toArray());
   const expenseCategories = categories?.filter(c => c.type === 'expense') || [];
   const incomeCategories = categories?.filter(c => c.type === 'income') || [];
-  
+
   const FUND_ICONS = ['💰', '🤝', '💼', '🎯', '🏦', '💳', '🛒', '🏠', '🚗', '✈️', '🎓', '💊'];
 
   const addCategory = async () => {
@@ -90,7 +90,7 @@ export default function BackupRestore() {
       const cats = await db.categories.toArray();
       const fundsData = await db.funds.toArray();
       const data = { wallets, transactions, categories: cats, funds: fundsData, version: 3, exportedAt: new Date().toISOString() };
-      
+
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -112,20 +112,32 @@ export default function BackupRestore() {
     try {
       const text = await file.text();
       const data = JSON.parse(text);
-      
+
       if (!data.wallets || !data.transactions) {
         throw new Error('Format file tidak valid');
       }
 
       await db.transaction('rw', db.wallets, db.transactions, db.categories, db.funds, async () => {
-        let walletsAdded = 0;
+        let walletsProcessed = 0;
         for (const w of data.wallets) {
-          const exists = await db.wallets.where('uuid').equals(w.uuid).count();
-          if (!exists) {
+          // Check by name (case-insensitive) for replacement
+          const existing = await db.wallets.filter(wallet =>
+            wallet.name.toLowerCase() === w.name.toLowerCase()
+          ).first();
+
+          if (existing) {
+            // Update existing wallet, keep original id and uuid
+            await db.wallets.update(existing.id, {
+              ...w,
+              id: existing.id,
+              uuid: existing.uuid
+            });
+          } else {
+            // Add new wallet
             delete w.id;
             await db.wallets.add(w);
-            walletsAdded++;
           }
+          walletsProcessed++;
         }
 
         let txAdded = 0;
@@ -138,31 +150,55 @@ export default function BackupRestore() {
           }
         }
 
-        let catsAdded = 0;
+        let catsProcessed = 0;
         if (data.categories) {
           for (const c of data.categories) {
-            const exists = await db.categories.where('uuid').equals(c.uuid).count();
-            if (!exists) {
+            // Check by name + type for categories
+            const existing = await db.categories.filter(cat =>
+              cat.name.toLowerCase() === c.name.toLowerCase() && cat.type === c.type
+            ).first();
+
+            if (existing) {
+              // Update existing category
+              await db.categories.update(existing.id, {
+                ...c,
+                id: existing.id,
+                uuid: existing.uuid
+              });
+            } else {
+              // Add new category
               delete c.id;
               await db.categories.add(c);
-              catsAdded++;
             }
+            catsProcessed++;
           }
         }
 
-        let fundsAdded = 0;
+        let fundsProcessed = 0;
         if (data.funds) {
           for (const f of data.funds) {
-            const exists = await db.funds.where('uuid').equals(f.uuid).count();
-            if (!exists) {
+            // Check by name for funds
+            const existing = await db.funds.filter(fund =>
+              fund.name.toLowerCase() === f.name.toLowerCase()
+            ).first();
+
+            if (existing) {
+              // Update existing fund
+              await db.funds.update(existing.id, {
+                ...f,
+                id: existing.id,
+                uuid: existing.uuid
+              });
+            } else {
+              // Add new fund
               delete f.id;
               await db.funds.add(f);
-              fundsAdded++;
             }
+            fundsProcessed++;
           }
         }
 
-        setMessage(`Restore Berhasil! ${walletsAdded} dompet, ${txAdded} transaksi, ${catsAdded} kategori, ${fundsAdded} dana baru.`);
+        setMessage(`Restore Berhasil! ${walletsProcessed} dompet, ${txAdded} transaksi baru, ${catsProcessed} kategori, ${fundsProcessed} dana diproses.`);
       });
     } catch (e) {
       console.error(e);
@@ -505,7 +541,7 @@ export default function BackupRestore() {
             <p className="text-xs text-emerald-700 mb-4 leading-relaxed">
               Simpan data keuangan Anda secara aman. Download file backup JSON untuk berjaga-jaga jika ganti perangkat.
             </p>
-            <button 
+            <button
               onClick={handleExport}
               className="bg-emerald-600 text-white px-4 py-2.5 rounded-lg font-medium text-sm w-full hover:bg-emerald-700 active:scale-[0.98] transition-all"
             >
@@ -524,8 +560,8 @@ export default function BackupRestore() {
               Punya file backup? Upload di sini untuk mengembalikan data Anda. Tenang, data yang ada tidak akan tertimpa (Smart Append).
             </p>
             <div className="relative group">
-              <input 
-                type="file" 
+              <input
+                type="file"
                 accept=".json"
                 onChange={handleImport}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"

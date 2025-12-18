@@ -30,7 +30,7 @@ export function useSettings() {
 
     // Apply display size
     document.documentElement.setAttribute('data-scale', settings.displaySize);
-  }, [settings.darkMode, settings.displaySize]); // Only re-run when these specific settings change
+  }, [settings.darkMode, settings.displaySize, settings.activeFundId]); // Include activeFundId to persist fund selection
 
   const updateSetting = (key, value) => {
     setSettings(prev => ({ ...prev, [key]: value }));

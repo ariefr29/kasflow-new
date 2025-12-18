@@ -5,6 +5,7 @@ import TransactionHistory from './components/TransactionHistory';
 import BackupRestore from './components/BackupRestore';
 import TransactionForm from './components/TransactionForm';
 import InstallPrompt from './components/InstallPrompt';
+import Toast from './components/Toast';
 import { useSettings } from './hooks/useSettings';
 import { useBalance } from './hooks/useBalance';
 import { Home, Wallet, History, Settings, Plus, ChevronDown, Globe } from 'lucide-react';
@@ -14,8 +15,9 @@ function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showFundDropdown, setShowFundDropdown] = useState(false);
+  const [toast, setToast] = useState(null);
   const dropdownRef = useRef(null);
-  
+
   // Initialize settings and get active fund controls
   const { activeFundId, setActiveFundId } = useSettings();
   const { funds, fundBalances, totalBalance } = useBalance();
@@ -33,24 +35,28 @@ function App() {
 
   // Get active fund info
   const activeFund = activeFundId ? funds?.find(f => f.uuid === activeFundId) : null;
-  const activeFundBalance = activeFundId 
+  const activeFundBalance = activeFundId
     ? fundBalances?.find(f => f.uuid === activeFundId)?.balance || 0
     : totalBalance;
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+  };
 
   return (
     <div className="min-h-screen flex justify-center bg-slate-50 font-sans text-slate-900 selection:bg-emerald-100">
       <div className="w-full max-w-md bg-white min-h-screen shadow-2xl relative flex flex-col sm:border-x sm:border-slate-200">
-        
+
         {/* Header */}
         <header className="px-5 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-30 flex justify-between items-center border-b border-slate-100">
           <div>
             <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">Kasflow</h1>
             <p className="text-xs text-slate-400">Catat Keuangan Mudah</p>
           </div>
-          
+
           {/* Dana Switcher */}
           <div className="relative" ref={dropdownRef}>
-            <button 
+            <button
               onClick={() => setShowFundDropdown(!showFundDropdown)}
               className="flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200"
             >
@@ -60,7 +66,7 @@ function App() {
               </span>
               <ChevronDown size={14} className={clsx("text-slate-400 transition-transform", showFundDropdown && "rotate-180")} />
             </button>
-            
+
             {/* Dropdown Menu */}
             {showFundDropdown && (
               <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-50 overflow-hidden">
@@ -80,9 +86,9 @@ function App() {
                     Rp {totalBalance?.toLocaleString('id-ID') || 0}
                   </span>
                 </button>
-                
+
                 <div className="border-t border-slate-100 my-1"></div>
-                
+
                 {/* Individual Funds */}
                 {fundBalances?.map(fund => (
                   <button
@@ -120,24 +126,24 @@ function App() {
 
         {/* Bottom Nav */}
         <nav className="bg-white/90 backdrop-blur-lg border-t border-slate-100 px-6 py-2 flex justify-between items-end sticky bottom-0 z-40 pb-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)]">
-          <NavButton 
-            active={activeTab === 'home'} 
-            onClick={() => setActiveTab('home')} 
-            icon={Home} 
-            label="Home" 
+          <NavButton
+            active={activeTab === 'home'}
+            onClick={() => setActiveTab('home')}
+            icon={Home}
+            label="Home"
           />
-          
-          <NavButton 
-            active={activeTab === 'history'} 
-            onClick={() => setActiveTab('history')} 
-            icon={History} 
-            label="Riwayat" 
+
+          <NavButton
+            active={activeTab === 'history'}
+            onClick={() => setActiveTab('history')}
+            icon={History}
+            label="Riwayat"
           />
 
           {/* FAB Button - Modern & Floating */}
           <div className="-mt-10 relative group">
             <div className="absolute inset-0 bg-emerald-500 rounded-2xl blur opacity-40 group-hover:opacity-60 transition duration-300"></div>
-            <button 
+            <button
               onClick={() => setShowAddModal(true)}
               className="relative bg-gradient-to-br from-emerald-500 to-teal-600 text-white p-4 rounded-2xl shadow-xl shadow-emerald-200 hover:shadow-emerald-300 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center border-4 border-white active:scale-95"
             >
@@ -145,32 +151,42 @@ function App() {
             </button>
           </div>
 
-          <NavButton 
-            active={activeTab === 'wallets'} 
-            onClick={() => setActiveTab('wallets')} 
-            icon={Wallet} 
-            label="Dompet" 
+          <NavButton
+            active={activeTab === 'wallets'}
+            onClick={() => setActiveTab('wallets')}
+            icon={Wallet}
+            label="Dompet"
           />
 
-          <NavButton 
-            active={activeTab === 'settings'} 
-            onClick={() => setActiveTab('settings')} 
-            icon={Settings} 
-            label="Menu" 
+          <NavButton
+            active={activeTab === 'settings'}
+            onClick={() => setActiveTab('settings')}
+            icon={Settings}
+            label="Menu"
           />
         </nav>
 
         {/* Transaction Modal */}
         {showAddModal && (
-          <TransactionForm 
-            onClose={() => setShowAddModal(false)} 
-            onSuccess={() => {}}
+          <TransactionForm
+            onClose={() => setShowAddModal(false)}
+            onSuccess={() => { }}
             activeFundId={activeFundId}
+            onShowToast={showToast}
           />
         )}
 
         {/* PWA Install Prompt */}
         <InstallPrompt />
+
+        {/* Toast Notification */}
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
 
       </div>
     </div>
@@ -179,8 +195,8 @@ function App() {
 
 function NavButton({ active, onClick, icon: Icon, label }) {
   return (
-    <button 
-      onClick={onClick} 
+    <button
+      onClick={onClick}
       className={clsx(
         "flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-200",
         active ? "text-emerald-600" : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
