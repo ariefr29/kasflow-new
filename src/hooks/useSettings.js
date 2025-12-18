@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const STORAGE_KEY = 'kasflow_settings';
 
@@ -18,39 +18,39 @@ export function useSettings() {
     }
   });
 
+  // Save to localStorage - separate effect that watches entire settings object
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  }, [settings]);
 
-    // Apply dark mode
+  // Apply dark mode - only when darkMode changes
+  useEffect(() => {
     if (settings.darkMode) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+  }, [settings.darkMode]);
 
-    // Apply display size
+  // Apply display size - only when displaySize changes
+  useEffect(() => {
     document.documentElement.setAttribute('data-scale', settings.displaySize);
-  }, [settings.darkMode, settings.displaySize, settings.activeFundId]); // Include activeFundId to persist fund selection
+  }, [settings.displaySize]);
 
-  const updateSetting = (key, value) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-  };
-
-  const toggleDarkMode = () => {
+  const toggleDarkMode = useCallback(() => {
     setSettings(prev => ({ ...prev, darkMode: !prev.darkMode }));
-  };
+  }, []);
 
-  const setDisplaySize = (size) => {
+  const setDisplaySize = useCallback((size) => {
     setSettings(prev => ({ ...prev, displaySize: size }));
-  };
+  }, []);
 
-  const setActiveFundId = (fundId) => {
+  const setActiveFundId = useCallback((fundId) => {
     setSettings(prev => ({ ...prev, activeFundId: fundId }));
-  };
+  }, []);
 
   return {
     settings,
-    updateSetting,
     toggleDarkMode,
     setDisplaySize,
     activeFundId: settings.activeFundId,
