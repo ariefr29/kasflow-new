@@ -12,37 +12,57 @@ Aplikasi pencatatan keuangan pribadi berbasis web yang ringan, cepat, dan bekerj
 - **Multi Dana** - Pisahkan keuangan berdasarkan tujuan (Pribadi, Titipan, Usaha, Tabungan)
 - **Dana Switcher** - Ganti profil Dana dengan cepat dari header
 - **Global View** - Lihat total keseluruhan dengan mode "Semua Dana"
+- **Dana Kustom** - Tambah, edit, atau hapus dana sesuai kebutuhan
 
 ### 💳 Multi Dompet (Wallet)
 - Dukung berbagai jenis dompet: Tunai, Bank, E-Wallet
 - Saldo otomatis terhitung dari transaksi
 - Transfer antar dompet
+- Manajemen dompet dengan tampilan ringkas
 
 ### 📊 Pencatatan Transaksi
-- Catat pemasukan dan pengeluaran
+- Catat pemasukan, pengeluaran, dan transfer
 - Kategori yang dapat dikustomisasi
 - Transfer antar dompet dengan tracking otomatis
 - Catatan/note untuk setiap transaksi
+- Penanggalan transaksi yang fleksibel
 
 ### 📈 Dashboard & Ringkasan
 - Total saldo real-time
 - Ringkasan pemasukan & pengeluaran bulanan
 - Transaksi terakhir
 - Filter otomatis berdasarkan Dana aktif
+- Tampilan visual yang informatif dan menarik
 
-### 🔒 Privasi & Offline
+### 🎨 UI & UX
+- **Tema Gelap** - Opsi tampilan gelap untuk kenyamanan mata
+- **Ukuran Tampilan** - Atur ukuran teks untuk kenyamanan penggunaan
+- **Desain Mobile-First** - Antarmuka yang optimal untuk perangkat mobile
+- **Interaksi Halus** - Animasi dan transisi yang menyenangkan
+
+### 📱 PWA (Progressive Web App)
+- **Installable** - Pasang seperti aplikasi native di perangkat
+- **Offline-First** - Bekerja tanpa koneksi internet
+- **Auto-Update** - Pembaruan otomatis saat versi baru tersedia
+- **Install Prompt** - Panduan instalasi untuk pengalaman native-like
+
+### 🔒 Privasi & Keamanan
 - **100% Offline** - Data tersimpan di browser (IndexedDB)
 - **Tanpa Server** - Tidak ada data yang dikirim ke internet
 - **Backup/Restore** - Export dan import data dalam format JSON
+- **Enkripsi Data** - Perlindungan data lokal di browser
 
 ## Tech Stack
 
 - **Frontend:** React 19, Vite
-- **UI Framework:** Tailwind CSS 4
-- **State Management:** React Context + Hooks
-- **Database:** Dexie.js (IndexedDB wrapper)
+- **UI Framework:** Tailwind CSS 4, Tailwind CSS PostCSS
+- **State Management:** React Context + Hooks + React Hooks
+- **Database:** Dexie.js (IndexedDB wrapper), Dexie React Hooks
 - **Icons:** Lucide React
 - **Date:** date-fns
+- **Utility:** clsx, uuid, tailwind-merge
+- **Build Tools:** TypeScript 5.9, Vite 7.2, Vite PWA Plugin
+- **CSS Processing:** PostCSS, Autoprefixer
 
 ## Instalasi
 
@@ -74,23 +94,21 @@ npm run preview
 
 ```
 src/
-├── components/
-│   ├── ui/                  # Shadcn UI components
+├── components/              # Komponen utama aplikasi
+│   ├── BackupRestore.jsx    # Backup & restore data
 │   ├── Dashboard.jsx        # Halaman utama dengan ringkasan
+│   ├── InstallPrompt.jsx    # Prompt instalasi PWA
 │   ├── TransactionForm.jsx  # Form input transaksi (Dialog)
 │   ├── TransactionHistory.jsx # Riwayat transaksi
-│   ├── WalletManager.jsx    # Kelola dompet
-│   └── BackupRestore.jsx    # Backup & restore data
-├── context/
-│   └── SettingsContext.jsx  # Global settings context
-├── hooks/
+│   └── WalletManager.jsx    # Kelola dompet
+├── hooks/                   # Custom React hooks
 │   ├── useBalance.js        # Hook kalkulasi saldo & transaksi
 │   └── useSettings.js       # Hook pengaturan aplikasi
-├── lib/
-│   └── utils.js             # Utility functions (cn, etc.)
-├── db.js                    # Konfigurasi database Dexie
 ├── App.jsx                  # Komponen utama aplikasi
-└── main.jsx                 # Entry point
+├── db.js                    # Konfigurasi database Dexie
+├── index.css                # Styling utama dan dark mode
+├── main.jsx                 # Entry point aplikasi
+└── vite-env.d.ts            # Definisi tipe Vite
 ```
 
 ## Penggunaan
@@ -134,6 +152,43 @@ src/
 | Titipan | 🤝 | Dana titipan dari orang lain |
 | Usaha | 💼 | Dana untuk keperluan usaha |
 | Tabungan | 🎯 | Dana tabungan/target |
+
+## PWA (Progressive Web App)
+
+Aplikasi ini adalah Progressive Web App yang menyediakan pengalaman aplikasi native melalui browser web:
+
+- **Installable** - Dapat dipasang di perangkat seperti aplikasi native
+- **Offline-First** - Bekerja tanpa koneksi internet berkat service worker
+- **Auto-Update** - Pembaruan otomatis saat versi baru tersedia
+- **Install Prompt** - Notifikasi otomatis untuk instalasi aplikasi
+- **Caching Efisien** - Assests penting di-cache untuk akses cepat
+
+### Instalasi di Berbagai Platform
+
+**Android (Chrome):**
+- Buka aplikasi di browser Chrome
+- Klik menu "Tiga titik" di pojok kanan atas
+- Pilih "Install App" atau "Tambahkan ke layar utama"
+
+**iOS (Safari):**
+- Buka aplikasi di browser Safari
+- Klik tombol "Share" (kotak dengan panah ke atas)
+- Pilih "Add to Home Screen"
+- Ketuk "Add"
+
+## Pengaturan Tampilan
+
+Aplikasi ini menyediakan beberapa opsi penyesuaian tampilan untuk kenyamanan pengguna:
+
+### Mode Gelap
+- Aktifkan atau nonaktifkan mode gelap sesuai preferensi
+- Perlindungan mata saat penggunaan dalam kondisi cahaya rendah
+- Pengaturan disimpan secara persisten
+
+### Ukuran Tampilan
+- Tersedia tiga opsi ukuran teks: Kecil, Sedang, dan Besar
+- Sesuaikan dengan kebutuhan visual dan kenyamanan membaca
+- Efek diterapkan secara real-time ke seluruh antarmuka
 
 ## Scripts
 
