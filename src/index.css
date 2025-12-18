@@ -212,6 +212,91 @@ body {
   background-color: rgba(16, 185, 129, 0.3) !important;
 }
 
+/* ========== Tab Switcher Dark Mode ========== */
+/* Active tab in dark mode - needs to stand out from bg-slate-100 container */
+.dark .bg-white.shadow-sm {
+  background-color: #334155 !important; /* slate-700 */
+}
+
+/* Tab container background adjustment */
+.dark .bg-slate-100.rounded-xl {
+  background-color: #1e293b !important; /* slate-800 */
+}
+
+/* ========== Button Dark Mode Fixes ========== */
+/* Primary button - bg-slate-900 needs lighter color in dark mode */
+.dark .bg-slate-900 {
+  background-color: #475569 !important; /* slate-600 */
+}
+.dark .hover\:bg-slate-800:hover {
+  background-color: #334155 !important; /* slate-700 */
+}
+
+/* Disabled button */
+.dark .disabled\:bg-slate-300:disabled {
+  background-color: #334155 !important;
+  opacity: 0.5;
+}
+
+/* Emerald button - keep gradient but adjust for dark mode */
+.dark .bg-emerald-600 {
+  background-color: #059669 !important; /* slightly brighter */
+}
+.dark .hover\:bg-emerald-700:hover {
+  background-color: #047857 !important;
+}
+
+/* ========== Card & Container Dark Mode ========== */
+/* Card borders more visible */
+.dark .border.border-slate-100,
+.dark .border.border-slate-200 {
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+/* Dashed borders */
+.dark .border-dashed.border-slate-200 {
+  border-color: rgba(148, 163, 184, 0.25) !important;
+}
+
+/* ========== Badge & Chip Dark Mode ========== */
+/* Small badges/chips with bg-slate-50 */
+.dark .bg-slate-50.rounded {
+  background-color: rgba(51, 65, 85, 0.5) !important;
+}
+
+/* ========== Icon Container Colors ========== */
+.dark .bg-emerald-100 {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+}
+.dark .ring-emerald-500 {
+  --tw-ring-color: rgba(16, 185, 129, 0.5) !important;
+}
+
+/* ========== Focus Ring Dark Mode ========== */
+.dark .focus-within\:ring-emerald-100 {
+  --tw-ring-color: rgba(16, 185, 129, 0.2) !important;
+}
+.dark .focus\:ring-emerald-500\/20:focus {
+  --tw-ring-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+/* ========== Dropdown Menu Dark Mode ========== */
+.dark .shadow-xl.border.border-slate-100 {
+  background-color: #1e293b !important;
+  border-color: rgba(148, 163, 184, 0.15) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ========== Message Toast Dark Mode (BackupRestore inline) ========== */
+.dark .bg-emerald-50.text-emerald-700 {
+  background-color: rgba(6, 78, 59, 0.8) !important;
+  color: #6ee7b7 !important;
+}
+.dark .bg-rose-50.text-rose-700 {
+  background-color: rgba(76, 5, 25, 0.8) !important;
+  color: #fda4af !important;
+}
+
 /* ========== Scrollbar ========== */
 ::-webkit-scrollbar {
   width: 6px;

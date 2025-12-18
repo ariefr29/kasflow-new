@@ -5,19 +5,37 @@ import { v4 as uuidv4 } from 'uuid';
 import { Trash2, Plus, Wallet, CreditCard, Banknote, ArrowLeft } from 'lucide-react';
 import clsx from 'clsx';
 import { useBalance } from '../hooks/useBalance';
+import Toast from './Toast';
 
 export default function WalletManager({ onClose }) {
   const { walletBalances, totalBalance } = useBalance();
+  const wallets = useLiveQuery(() => db.wallets.toArray());
   const [isAdding, setIsAdding] = useState(false);
   const [newName, setNewName] = useState('');
   const [newType, setNewType] = useState('cash');
   const [initialBalance, setInitialBalance] = useState(0);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+  };
 
   const addWallet = async () => {
-    if (!newName) return;
+    if (!newName.trim()) {
+      showToast('Nama dompet tidak boleh kosong!', 'error');
+      return;
+    }
+
+    // Check for duplicate name
+    const exists = wallets?.find(w => w.name.toLowerCase() === newName.trim().toLowerCase());
+    if (exists) {
+      showToast('Dompet dengan nama tersebut sudah ada!', 'error');
+      return;
+    }
+
     await db.wallets.add({
       uuid: uuidv4(),
-      name: newName,
+      name: newName.trim(),
       type: newType,
       initialBalance: parseFloat(initialBalance) || 0,
       createdAt: new Date().toISOString()
@@ -25,11 +43,13 @@ export default function WalletManager({ onClose }) {
     setIsAdding(false);
     setNewName('');
     setInitialBalance(0);
+    showToast('Dompet berhasil ditambahkan!', 'success');
   };
 
-  const deleteWallet = async (id) => {
-    if (confirm('Hapus dompet ini? Transaksi terkait tidak akan dihapus tapi mungkin menjadi orphan.')) {
+  const deleteWallet = async (id, name) => {
+    if (confirm(`Hapus dompet "${name}"? Transaksi terkait tidak akan dihapus tapi mungkin menjadi orphan.`)) {
       await db.wallets.delete(id);
+      showToast('Dompet berhasil dihapus', 'error');
     }
   };
 
@@ -37,10 +57,10 @@ export default function WalletManager({ onClose }) {
     return (
       <div className="p-5">
         <div className="flex items-center gap-3 mb-5">
-           <button onClick={() => setIsAdding(false)} className="p-2 -ml-2 text-slate-400 hover:text-slate-600">
-             <ArrowLeft size={20} />
-           </button>
-           <h3 className="text-lg font-semibold text-slate-800">Tambah Dompet</h3>
+          <button onClick={() => setIsAdding(false)} className="p-2 -ml-2 text-slate-400 hover:text-slate-600">
+            <ArrowLeft size={20} />
+          </button>
+          <h3 className="text-lg font-semibold text-slate-800">Tambah Dompet</h3>
         </div>
 
         <div className="space-y-4">
@@ -54,7 +74,7 @@ export default function WalletManager({ onClose }) {
               autoFocus
             />
           </div>
-          
+
           <div>
             <label className="block text-[11px] font-medium text-slate-400 uppercase mb-1.5">Tipe</label>
             <div className="grid grid-cols-3 gap-2">
@@ -94,6 +114,15 @@ export default function WalletManager({ onClose }) {
             </button>
           </div>
         </div>
+
+        {/* Toast Notification */}
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
       </div>
     );
   }
@@ -101,13 +130,13 @@ export default function WalletManager({ onClose }) {
   return (
     <div className="p-5 pb-24">
       <h2 className="text-lg font-semibold text-slate-800 mb-4">Dompet Saya</h2>
-      
+
       {/* Total Balance Summary */}
       <div className="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-4 rounded-2xl mb-5">
         <div className="text-xs text-emerald-100 mb-0.5">Total Semua Dompet</div>
         <div className="text-2xl font-bold">Rp {totalBalance.toLocaleString('id-ID')}</div>
       </div>
-      
+
       <div className="space-y-3 mb-6">
         {walletBalances?.map(wallet => (
           <div key={wallet.id} className="bg-white p-4 rounded-xl border border-slate-100">
@@ -115,11 +144,11 @@ export default function WalletManager({ onClose }) {
               <div className="flex items-center gap-3">
                 <div className={clsx(
                   "p-2.5 rounded-lg",
-                  wallet.type === 'bank' ? "bg-sky-50 text-sky-600" : 
-                  wallet.type === 'ewallet' ? "bg-teal-50 text-teal-600" : "bg-emerald-50 text-emerald-600"
+                  wallet.type === 'bank' ? "bg-sky-50 text-sky-600" :
+                    wallet.type === 'ewallet' ? "bg-teal-50 text-teal-600" : "bg-emerald-50 text-emerald-600"
                 )}>
-                  {wallet.type === 'bank' ? <CreditCard size={20} /> : 
-                   wallet.type === 'ewallet' ? <Wallet size={20} /> : <Banknote size={20} />}
+                  {wallet.type === 'bank' ? <CreditCard size={20} /> :
+                    wallet.type === 'ewallet' ? <Wallet size={20} /> : <Banknote size={20} />}
                 </div>
                 <div>
                   <div className="font-medium text-slate-800 text-sm">{wallet.name}</div>
@@ -133,7 +162,7 @@ export default function WalletManager({ onClose }) {
                   </div>
                   <div className="text-[10px] text-slate-400">Saldo aktual</div>
                 </div>
-                <button onClick={() => deleteWallet(wallet.id)} className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors">
+                <button onClick={() => deleteWallet(wallet.id, wallet.name)} className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors">
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -148,6 +177,15 @@ export default function WalletManager({ onClose }) {
       >
         <Plus size={18} /> Tambah Dompet Baru
       </button>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

@@ -577,9 +577,9 @@ export default function BackupRestore() {
 
       {/* Message Toast */}
       {message && (
-        <div className={`p-3 rounded-lg flex items-start gap-2.5 ${message.includes('Gagal') || message.includes('tidak bisa') || message.includes('sudah ada') ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
+        <div className={`p-3 rounded-lg flex items-start gap-2.5 ${message.includes('Gagal') || message.includes('tidak bisa') || message.includes('sudah ada') || message.includes('dihapus') ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
           <div className="mt-0.5">
-            {message.includes('Gagal') || message.includes('tidak bisa') || message.includes('sudah ada') ? <AlertTriangle size={16} /> : <CheckCircle size={16} />}
+            {message.includes('Gagal') || message.includes('tidak bisa') || message.includes('sudah ada') || message.includes('dihapus') ? <AlertTriangle size={16} /> : <CheckCircle size={16} />}
           </div>
           <span className="text-xs font-medium leading-relaxed">{message}</span>
         </div>

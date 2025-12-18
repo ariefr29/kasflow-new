@@ -116,7 +116,7 @@ export default function TransactionForm({ onClose, onSuccess, activeFundId, edit
               });
             }
           }
-          onShowToast?.('Berhasil mengubah transfer dana');
+          onShowToast?.('Berhasil mengubah transfer dana', 'success');
         } else {
           // Update regular transaction
           await db.transactions.update(editData.id, {
@@ -128,7 +128,7 @@ export default function TransactionForm({ onClose, onSuccess, activeFundId, edit
             note,
             fundId
           });
-          onShowToast?.(type === 'income' ? 'Berhasil mengubah pemasukan' : 'Berhasil mengubah pengeluaran');
+          onShowToast?.(type === 'income' ? 'Berhasil mengubah pemasukan' : 'Berhasil mengubah pengeluaran', 'success');
         }
       } else {
         // CREATE MODE
@@ -176,7 +176,7 @@ export default function TransactionForm({ onClose, onSuccess, activeFundId, edit
             createdAt: new Date().toISOString()
           });
         }
-        onShowToast?.(getSuccessMessage(type));
+        onShowToast?.(getSuccessMessage(type), 'success');
       }
 
       onSuccess?.();
@@ -196,10 +196,10 @@ export default function TransactionForm({ onClose, onSuccess, activeFundId, edit
         // Delete both sides of transfer
         const relatedTxs = await db.transactions.where('transferId').equals(editData.transferId).toArray();
         await db.transactions.bulkDelete(relatedTxs.map(t => t.id));
-        onShowToast?.('Transfer dana berhasil dihapus');
+        onShowToast?.('Transfer dana berhasil dihapus', 'error');
       } else {
         await db.transactions.delete(editData.id);
-        onShowToast?.(editData.type === 'income' ? 'Pemasukan berhasil dihapus' : 'Pengeluaran berhasil dihapus');
+        onShowToast?.(editData.type === 'income' ? 'Pemasukan berhasil dihapus' : 'Pengeluaran berhasil dihapus', 'error');
       }
       onSuccess?.();
       onClose();
