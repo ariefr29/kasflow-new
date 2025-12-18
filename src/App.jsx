@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
 import WalletManager from './components/WalletManager';
 import TransactionHistory from './components/TransactionHistory';
@@ -8,19 +8,22 @@ import InstallPrompt from './components/InstallPrompt';
 import Toast from './components/Toast';
 import { useSettings } from './hooks/useSettings';
 import { useBalance } from './hooks/useBalance';
+import { useToast } from './hooks/useToast';
+import { formatCurrency } from './utils/helpers';
 import { Home, Wallet, History, Settings, Plus, ChevronDown, Globe } from 'lucide-react';
 import clsx from 'clsx';
+import { useState } from 'react';
 
 function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showFundDropdown, setShowFundDropdown] = useState(false);
-  const [toast, setToast] = useState(null);
   const dropdownRef = useRef(null);
 
-  // Initialize settings and get active fund controls
+  // Custom hooks
   const { activeFundId, setActiveFundId } = useSettings();
   const { funds, fundBalances, totalBalance } = useBalance();
+  const { toast, showToast, hideToast } = useToast();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -35,13 +38,6 @@ function App() {
 
   // Get active fund info
   const activeFund = activeFundId ? funds?.find(f => f.uuid === activeFundId) : null;
-  const activeFundBalance = activeFundId
-    ? fundBalances?.find(f => f.uuid === activeFundId)?.balance || 0
-    : totalBalance;
-
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
-  };
 
   return (
     <div className="min-h-screen flex justify-center bg-slate-50 font-sans text-slate-900 selection:bg-emerald-100">
@@ -70,7 +66,6 @@ function App() {
             {/* Dropdown Menu */}
             {showFundDropdown && (
               <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-50 overflow-hidden">
-                {/* Semua Dana (Global) */}
                 <button
                   onClick={() => { setActiveFundId(null); setShowFundDropdown(false); }}
                   className={clsx(
@@ -83,13 +78,12 @@ function App() {
                     <span className="font-medium text-slate-700">Semua Dana</span>
                   </div>
                   <span className="text-xs font-semibold text-slate-500">
-                    Rp {totalBalance?.toLocaleString('id-ID') || 0}
+                    {formatCurrency(totalBalance)}
                   </span>
                 </button>
 
                 <div className="border-t border-slate-100 my-1"></div>
 
-                {/* Individual Funds */}
                 {fundBalances?.map(fund => (
                   <button
                     key={fund.uuid}
@@ -107,7 +101,7 @@ function App() {
                       "text-xs font-semibold",
                       fund.balance >= 0 ? "text-slate-500" : "text-rose-500"
                     )}>
-                      Rp {fund.balance?.toLocaleString('id-ID') || 0}
+                      {formatCurrency(fund.balance)}
                     </span>
                   </button>
                 ))}
@@ -126,21 +120,10 @@ function App() {
 
         {/* Bottom Nav */}
         <nav className="bg-white/90 backdrop-blur-lg border-t border-slate-100 px-6 py-2 flex justify-between items-end sticky bottom-0 z-40 pb-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)]">
-          <NavButton
-            active={activeTab === 'home'}
-            onClick={() => setActiveTab('home')}
-            icon={Home}
-            label="Home"
-          />
+          <NavButton active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={Home} label="Home" />
+          <NavButton active={activeTab === 'history'} onClick={() => setActiveTab('history')} icon={History} label="Riwayat" />
 
-          <NavButton
-            active={activeTab === 'history'}
-            onClick={() => setActiveTab('history')}
-            icon={History}
-            label="Riwayat"
-          />
-
-          {/* FAB Button - Modern & Floating */}
+          {/* FAB Button */}
           <div className="-mt-10 relative group">
             <div className="absolute inset-0 bg-emerald-500 rounded-2xl blur opacity-40 group-hover:opacity-60 transition duration-300"></div>
             <button
@@ -151,19 +134,8 @@ function App() {
             </button>
           </div>
 
-          <NavButton
-            active={activeTab === 'wallets'}
-            onClick={() => setActiveTab('wallets')}
-            icon={Wallet}
-            label="Dompet"
-          />
-
-          <NavButton
-            active={activeTab === 'settings'}
-            onClick={() => setActiveTab('settings')}
-            icon={Settings}
-            label="Menu"
-          />
+          <NavButton active={activeTab === 'wallets'} onClick={() => setActiveTab('wallets')} icon={Wallet} label="Dompet" />
+          <NavButton active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} icon={Settings} label="Menu" />
         </nav>
 
         {/* Transaction Modal */}
@@ -184,10 +156,9 @@ function App() {
           <Toast
             message={toast.message}
             type={toast.type}
-            onClose={() => setToast(null)}
+            onClose={hideToast}
           />
         )}
-
       </div>
     </div>
   );

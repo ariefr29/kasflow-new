@@ -6,6 +6,8 @@ import { Download, Upload, CheckCircle, AlertTriangle, Database, Tag, Plus, X, A
 import { format } from 'date-fns';
 import clsx from 'clsx';
 import { useSettings } from '../hooks/useSettings';
+import TabSwitcher from './ui/TabSwitcher';
+import { isErrorMessage } from '../utils/helpers';
 
 export default function BackupRestore() {
   const [message, setMessage] = useState('');
@@ -213,44 +215,16 @@ export default function BackupRestore() {
       <h2 className="text-lg font-semibold text-slate-800">Pengaturan</h2>
 
       {/* Tab Switcher */}
-      <div className="flex p-1 gap-1 bg-slate-100 rounded-xl overflow-x-auto">
-        <button
-          onClick={() => setActiveTab('general')}
-          className={clsx(
-            "flex-1 py-2 rounded-lg font-medium text-xs transition-all whitespace-nowrap",
-            activeTab === 'general' ? "bg-white text-slate-800 shadow-sm" : "text-slate-500"
-          )}
-        >
-          Umum
-        </button>
-        <button
-          onClick={() => setActiveTab('funds')}
-          className={clsx(
-            "flex-1 py-2 rounded-lg font-medium text-xs transition-all whitespace-nowrap",
-            activeTab === 'funds' ? "bg-white text-slate-800 shadow-sm" : "text-slate-500"
-          )}
-        >
-          Dana
-        </button>
-        <button
-          onClick={() => setActiveTab('categories')}
-          className={clsx(
-            "flex-1 py-2 rounded-lg font-medium text-xs transition-all whitespace-nowrap",
-            activeTab === 'categories' ? "bg-white text-slate-800 shadow-sm" : "text-slate-500"
-          )}
-        >
-          Kategori
-        </button>
-        <button
-          onClick={() => setActiveTab('backup')}
-          className={clsx(
-            "flex-1 py-2 rounded-lg font-medium text-xs transition-all whitespace-nowrap",
-            activeTab === 'backup' ? "bg-white text-slate-800 shadow-sm" : "text-slate-500"
-          )}
-        >
-          Backup
-        </button>
-      </div>
+      <TabSwitcher
+        tabs={[
+          { key: 'general', label: 'Umum' },
+          { key: 'funds', label: 'Dana' },
+          { key: 'categories', label: 'Kategori' },
+          { key: 'backup', label: 'Backup' }
+        ]}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
       {/* General Tab */}
       {activeTab === 'general' && (
@@ -577,9 +551,9 @@ export default function BackupRestore() {
 
       {/* Message Toast */}
       {message && (
-        <div className={`p-3 rounded-lg flex items-start gap-2.5 ${message.includes('Gagal') || message.includes('tidak bisa') || message.includes('sudah ada') || message.includes('dihapus') ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
+        <div className={`p-3 rounded-lg flex items-start gap-2.5 ${isErrorMessage(message) ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
           <div className="mt-0.5">
-            {message.includes('Gagal') || message.includes('tidak bisa') || message.includes('sudah ada') || message.includes('dihapus') ? <AlertTriangle size={16} /> : <CheckCircle size={16} />}
+            {isErrorMessage(message) ? <AlertTriangle size={16} /> : <CheckCircle size={16} />}
           </div>
           <span className="text-xs font-medium leading-relaxed">{message}</span>
         </div>

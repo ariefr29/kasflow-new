@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { ArrowUpRight, ArrowDownLeft, Wallet, Search, Edit3 } from 'lucide-react';
 import { useBalance } from '../hooks/useBalance';
+import { useToast } from '../hooks/useToast';
 import TransactionForm from './TransactionForm';
 import Toast from './Toast';
 import clsx from 'clsx';
@@ -12,11 +13,7 @@ export default function TransactionHistory({ activeFundId }) {
   const transactions = allTransactions?.slice(0, 100);
 
   const [editingTransaction, setEditingTransaction] = useState(null);
-  const [toast, setToast] = useState(null);
-
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
-  };
+  const { toast, showToast, hideToast } = useToast();
 
   return (
     <div className="p-5 pb-24 space-y-4">
@@ -96,7 +93,7 @@ export default function TransactionHistory({ activeFundId }) {
         <Toast
           message={toast.message}
           type={toast.type}
-          onClose={() => setToast(null)}
+          onClose={hideToast}
         />
       )}
     </div>

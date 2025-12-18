@@ -5,6 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { Trash2, Plus, Wallet, CreditCard, Banknote, ArrowLeft } from 'lucide-react';
 import clsx from 'clsx';
 import { useBalance } from '../hooks/useBalance';
+import { useToast } from '../hooks/useToast';
+import { isDuplicateName, formatCurrency, getWalletIcon, getWalletIconStyle } from '../utils/helpers';
 import Toast from './Toast';
 
 export default function WalletManager({ onClose }) {
@@ -14,11 +16,7 @@ export default function WalletManager({ onClose }) {
   const [newName, setNewName] = useState('');
   const [newType, setNewType] = useState('cash');
   const [initialBalance, setInitialBalance] = useState(0);
-  const [toast, setToast] = useState(null);
-
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
-  };
+  const { toast, showToast, hideToast } = useToast();
 
   const addWallet = async () => {
     if (!newName.trim()) {
@@ -26,9 +24,7 @@ export default function WalletManager({ onClose }) {
       return;
     }
 
-    // Check for duplicate name
-    const exists = wallets?.find(w => w.name.toLowerCase() === newName.trim().toLowerCase());
-    if (exists) {
+    if (isDuplicateName(wallets, newName)) {
       showToast('Dompet dengan nama tersebut sudah ada!', 'error');
       return;
     }
@@ -51,6 +47,24 @@ export default function WalletManager({ onClose }) {
       await db.wallets.delete(id);
       showToast('Dompet berhasil dihapus', 'error');
     }
+  };
+
+  const WalletTypeButton = ({ type, label }) => {
+    const Icon = getWalletIcon(type);
+    return (
+      <button
+        onClick={() => setNewType(type)}
+        className={clsx(
+          "p-3 rounded-xl border flex flex-col items-center gap-1.5 transition-all",
+          newType === type
+            ? "border-emerald-500 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-500"
+            : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
+        )}
+      >
+        <Icon size={20} />
+        <span className="text-[11px] font-medium capitalize">{label}</span>
+      </button>
+    );
   };
 
   if (isAdding) {
@@ -78,19 +92,9 @@ export default function WalletManager({ onClose }) {
           <div>
             <label className="block text-[11px] font-medium text-slate-400 uppercase mb-1.5">Tipe</label>
             <div className="grid grid-cols-3 gap-2">
-              {['cash', 'bank', 'ewallet'].map(t => (
-                <button
-                  key={t}
-                  onClick={() => setNewType(t)}
-                  className={clsx(
-                    "p-3 rounded-xl border flex flex-col items-center gap-1.5 transition-all",
-                    newType === t ? "border-emerald-500 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-500" : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
-                  )}
-                >
-                  {t === 'cash' ? <Banknote size={20} /> : t === 'bank' ? <CreditCard size={20} /> : <Wallet size={20} />}
-                  <span className="text-[11px] font-medium capitalize">{t}</span>
-                </button>
-              ))}
+              <WalletTypeButton type="cash" label="Cash" />
+              <WalletTypeButton type="bank" label="Bank" />
+              <WalletTypeButton type="ewallet" label="E-Wallet" />
             </div>
           </div>
 
@@ -115,14 +119,7 @@ export default function WalletManager({ onClose }) {
           </div>
         </div>
 
-        {/* Toast Notification */}
-        {toast && (
-          <Toast
-            message={toast.message}
-            type={toast.type}
-            onClose={() => setToast(null)}
-          />
-        )}
+        {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       </div>
     );
   }
@@ -134,41 +131,39 @@ export default function WalletManager({ onClose }) {
       {/* Total Balance Summary */}
       <div className="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-4 rounded-2xl mb-5">
         <div className="text-xs text-emerald-100 mb-0.5">Total Semua Dompet</div>
-        <div className="text-2xl font-bold">Rp {totalBalance.toLocaleString('id-ID')}</div>
+        <div className="text-2xl font-bold">{formatCurrency(totalBalance)}</div>
       </div>
 
       <div className="space-y-3 mb-6">
-        {walletBalances?.map(wallet => (
-          <div key={wallet.id} className="bg-white p-4 rounded-xl border border-slate-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className={clsx(
-                  "p-2.5 rounded-lg",
-                  wallet.type === 'bank' ? "bg-sky-50 text-sky-600" :
-                    wallet.type === 'ewallet' ? "bg-teal-50 text-teal-600" : "bg-emerald-50 text-emerald-600"
-                )}>
-                  {wallet.type === 'bank' ? <CreditCard size={20} /> :
-                    wallet.type === 'ewallet' ? <Wallet size={20} /> : <Banknote size={20} />}
-                </div>
-                <div>
-                  <div className="font-medium text-slate-800 text-sm">{wallet.name}</div>
-                  <div className="text-[11px] text-slate-400 capitalize">{wallet.type}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="text-right">
-                  <div className={clsx("font-semibold text-sm", wallet.balance >= 0 ? "text-slate-800" : "text-rose-600")}>
-                    Rp {wallet.balance.toLocaleString('id-ID')}
+        {walletBalances?.map(wallet => {
+          const Icon = getWalletIcon(wallet.type);
+          return (
+            <div key={wallet.id} className="bg-white p-4 rounded-xl border border-slate-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={clsx("p-2.5 rounded-lg", getWalletIconStyle(wallet.type))}>
+                    <Icon size={20} />
                   </div>
-                  <div className="text-[10px] text-slate-400">Saldo aktual</div>
+                  <div>
+                    <div className="font-medium text-slate-800 text-sm">{wallet.name}</div>
+                    <div className="text-[11px] text-slate-400 capitalize">{wallet.type}</div>
+                  </div>
                 </div>
-                <button onClick={() => deleteWallet(wallet.id, wallet.name)} className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors">
-                  <Trash2 size={16} />
-                </button>
+                <div className="flex items-center gap-2">
+                  <div className="text-right">
+                    <div className={clsx("font-semibold text-sm", wallet.balance >= 0 ? "text-slate-800" : "text-rose-600")}>
+                      {formatCurrency(wallet.balance)}
+                    </div>
+                    <div className="text-[10px] text-slate-400">Saldo aktual</div>
+                  </div>
+                  <button onClick={() => deleteWallet(wallet.id, wallet.name)} className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <button
@@ -178,14 +173,7 @@ export default function WalletManager({ onClose }) {
         <Plus size={18} /> Tambah Dompet Baru
       </button>
 
-      {/* Toast Notification */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
     </div>
   );
 }
