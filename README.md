@@ -1,6 +1,6 @@
 # Kasflow - Catat Keuanganmu
 
-**Version 1.0.2** - Production Ready ✨
+**Version 1.0.3** - Feature Update ✨
 
 Aplikasi pencatatan keuangan pribadi berbasis web yang ringan, cepat, dan bekerja secara offline. Dibangun dengan React dan menyimpan data langsung di browser menggunakan IndexedDB.
 
@@ -18,10 +18,12 @@ Aplikasi pencatatan keuangan pribadi berbasis web yang ringan, cepat, dan bekerj
 - Dukung berbagai jenis dompet: Tunai, Bank, E-Wallet
 - Saldo otomatis terhitung dari transaksi
 - Transfer antar dompet
-- Manajemen dompet dengan tampilan ringkas
+- **Edit dompet** - Ubah nama dan tipe (saldo read-only)
+- **Validasi hapus** - Dompet hanya bisa dihapus jika saldo = 0
 
 ### 📊 Pencatatan Transaksi
 - Catat pemasukan, pengeluaran, dan transfer
+- **Edit & hapus transaksi** - Klik transaksi di riwayat untuk mengedit
 - Kategori yang dapat dikustomisasi
 - Transfer antar dompet dengan tracking otomatis
 - Catatan/note untuk setiap transaksi
@@ -39,6 +41,8 @@ Aplikasi pencatatan keuangan pribadi berbasis web yang ringan, cepat, dan bekerj
 - **Ukuran Tampilan** - Atur ukuran teks untuk kenyamanan penggunaan
 - **Desain Mobile-First** - Antarmuka yang optimal untuk perangkat mobile
 - **Interaksi Halus** - Animasi dan transisi yang menyenangkan
+- **Toast Notifications** - Notifikasi visual untuk setiap aksi
+- **Confirm Dialog Modern** - Dialog konfirmasi dengan desain modern
 
 ### 📱 PWA (Progressive Web App)
 - **Installable** - Pasang seperti aplikasi native di perangkat
@@ -54,14 +58,14 @@ Aplikasi pencatatan keuangan pribadi berbasis web yang ringan, cepat, dan bekerj
 
 ## Tech Stack
 
-- **Frontend:** React 19, Vite
-- **UI Framework:** Tailwind CSS 4, Tailwind CSS PostCSS
-- **State Management:** React Context + Hooks + React Hooks
+- **Frontend:** React 19, Vite 7
+- **UI Framework:** Tailwind CSS 4, PostCSS
+- **State Management:** React Context + Custom Hooks
 - **Database:** Dexie.js (IndexedDB wrapper), Dexie React Hooks
 - **Icons:** Lucide React
 - **Date:** date-fns
 - **Utility:** clsx, uuid, tailwind-merge
-- **Build Tools:** TypeScript 5.9, Vite 7.2, Vite PWA Plugin
+- **Build Tools:** TypeScript 5.9, Vite PWA Plugin
 - **CSS Processing:** PostCSS, Autoprefixer
 
 ## Instalasi
@@ -95,15 +99,23 @@ npm run preview
 ```
 src/
 ├── components/              # Komponen utama aplikasi
-│   ├── BackupRestore.jsx    # Backup & restore data
+│   ├── ui/                  # Komponen UI reusable
+│   │   ├── ConfirmDialog.jsx # Dialog konfirmasi modern
+│   │   └── TabSwitcher.jsx   # Komponen tab switcher
+│   ├── BackupRestore.jsx    # Backup, restore & pengaturan
 │   ├── Dashboard.jsx        # Halaman utama dengan ringkasan
 │   ├── InstallPrompt.jsx    # Prompt instalasi PWA
+│   ├── Toast.jsx            # Komponen notifikasi toast
 │   ├── TransactionForm.jsx  # Form input transaksi (Dialog)
 │   ├── TransactionHistory.jsx # Riwayat transaksi
 │   └── WalletManager.jsx    # Kelola dompet
 ├── hooks/                   # Custom React hooks
 │   ├── useBalance.js        # Hook kalkulasi saldo & transaksi
-│   └── useSettings.js       # Hook pengaturan aplikasi
+│   ├── useSettings.js       # Hook pengaturan aplikasi
+│   └── useToast.js          # Hook manajemen toast notification
+├── utils/                   # Utility functions
+│   ├── formatters.js        # Format nominal & sorting kategori
+│   └── helpers.js           # Helper functions umum
 ├── App.jsx                  # Komponen utama aplikasi
 ├── db.js                    # Konfigurasi database Dexie
 ├── index.css                # Styling utama dan dark mode
@@ -121,10 +133,21 @@ src/
 ### Menambah Transaksi
 1. Klik tombol **+** di tengah navigation bar
 2. Pilih jenis: Pengeluaran / Pemasukan / Transfer
-3. Masukkan nominal dan pilih dompet
+3. Masukkan nominal 
 4. Dana otomatis mengikuti Dana aktif (atau pilih manual jika "Semua Dana")
 5. Pilih kategori dan tambahkan catatan (opsional)
 6. Klik "Simpan Transaksi"
+
+### Edit/Hapus Transaksi
+1. Buka tab **Riwayat**
+2. Klik transaksi yang ingin diedit
+3. Ubah data yang diperlukan atau klik "Hapus Transaksi"
+4. Konfirmasi aksi di dialog yang muncul
+
+### Mengelola Dompet
+1. Buka tab **Dompet**
+2. Klik dompet untuk mengedit nama atau tipe
+3. Untuk menghapus, pastikan saldo = 0 terlebih dahulu
 
 ### Backup Data
 1. Buka menu **Menu** (ikon gear)
